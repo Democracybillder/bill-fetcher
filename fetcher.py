@@ -9,7 +9,7 @@ def getStates():
         reader = csv.reader(csvfile, delimiter = ",")
         for row in reader:
             states.append(row[1])
-    states = states[1:2] # '2' for testing purposes -> change '2' to '52' for execution
+    states = states[1:52]
     return states
 
 
