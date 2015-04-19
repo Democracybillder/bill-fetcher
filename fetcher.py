@@ -42,9 +42,8 @@ def compileStateBills(request, state):
     billsLog = []
     masterList, session = editStateBills(request)
     for bill in masterList:
-        print 'pre-bill = ', bill
+        #if isBillInDB(bill) == False:
         bill = validateDate(bill)
-        print 'post-bill =,', bill
         billDesc = {
             "state": state,
             "bill_id":bill["bill_id"],
@@ -62,9 +61,23 @@ def compileStateBills(request, state):
         }
         billsDesc.append(billDesc)
         billsLog.append(billLog)
+        '''Else:
+            if compreBillsToDB(bill) == True:
+                continue
+            else:
+                billLog = {
+                "bill_id": bill["bill_id"],
+                "status_date": bill["status_date"],
+                "status": bill["status"],
+                "last_action_date": bill["last_action_date"],
+                "last_action": bill["last_action"]
+            billsLog.append(billLog)
+               '''
     billsDesc = tuple(billsDesc)
     billsLog = tuple(billsLog)
+    return billsDesc, billsLog
 
+def insertDataIntoDB(billsDesc, billsLog):
     database = db
     database.insertbills('billder', billsDesc, billsLog)
 
@@ -77,6 +90,7 @@ def editStateBills(request):
     return masterList, session
 
 def validateDate(bill):
+    '''checks if dates in bill real and sends to compare with db last date'''
     valstatdate = isRealDate(bill["status_date"])
     if valstatdate == 0:
         bill["status_date"] = None
@@ -90,6 +104,6 @@ def getAllStateBills():
     for state in getStates():
         compileStateBills(pullStateData(state),state)
 
-#getAllStateBills()
-compileStateBills(pullStateData("IN"),"IN")
 
+#getAllStateBills()
+insertDataIntoDB(compileStateBills(pullStateData("IN"),"IN"))
