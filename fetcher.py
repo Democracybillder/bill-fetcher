@@ -42,7 +42,6 @@ def compileStateBills(request, state):
     billsLog = []
     masterList, session = editStateBills(request)
     for bill in masterList:
-        #if isBillInDB(bill) == False:
         bill = validateDate(bill)
         billDesc = {
             "state": state,
@@ -61,18 +60,6 @@ def compileStateBills(request, state):
         }
         billsDesc.append(billDesc)
         billsLog.append(billLog)
-        '''Else:
-            if compreBillsToDB(bill) == True:
-                continue
-            else:
-                billLog = {
-                "bill_id": bill["bill_id"],
-                "status_date": bill["status_date"],
-                "status": bill["status"],
-                "last_action_date": bill["last_action_date"],
-                "last_action": bill["last_action"]
-            billsLog.append(billLog)
-               '''
     billsDesc = tuple(billsDesc)
     billsLog = tuple(billsLog)
     return billsDesc, billsLog
