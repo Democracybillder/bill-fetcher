@@ -1,15 +1,15 @@
 #!/usr/bin/python
 ''' pulls bill data from the legiscan api and populates the db'''
 # TODO:
-# - add state code to desc
 # - save only one instance for bills with more than one action
+# - Decouple editStateBills
 
 import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
 import db
 import datetime
 
-def validateDate(date_text):
+def isRealDate(date_text):
     ''' validates dates '''
     try:
         datetime.datetime.strptime(str(date_text), '%Y-%m-%d')
@@ -36,22 +36,15 @@ def pullStateData(state):
     req = requests.get('http://api.legiscan.com/?', params=params)
     return req
 
-## Split me!!!
-def editStateBills(request, state):
-    '''Takes state bills request object and edits it to DB specifications, returns two tuples objects)'''
+def compileStateBills(request, state):
+    '''Takes state bills request object and returns two tuples objects'''
     billsDesc = []
     billsLog = []
-    original = request.json()
-    session = original["masterlist"]["session"]["session_name"]
-    del original["masterlist"]["session"]
-    masterList = original["masterlist"].values() # turns dict into list of bills (gets rid of useless number keys)
+    masterList, session = editStateBills(request)
     for bill in masterList:
-        valstatdate = validateDate(bill["status_date"])
-        if valstatdate == 0:
-            bill["status_date"] = None
-        valactiondate = validateDate(bill["last_action_date"])
-        if valactiondate == 0:
-            bill["last_action_date"] = None
+        print 'pre-bill = ', bill
+        bill = validateDate(bill)
+        print 'post-bill =,', bill
         billDesc = {
             "state": state,
             "bill_id":bill["bill_id"],
@@ -75,9 +68,28 @@ def editStateBills(request, state):
     database = db
     database.insertbills('billder', billsDesc, billsLog)
 
+def editStateBills(request):
+    '''Takes state bills request objects and edits it to db specifications'''
+    original = request.json()
+    session = original["masterlist"]["session"]["session_name"]
+    del original["masterlist"]["session"]
+    masterList = original["masterlist"].values() # turns dict into list of bills (gets rid of useless number keys)
+    return masterList, session
+
+def validateDate(bill):
+    valstatdate = isRealDate(bill["status_date"])
+    if valstatdate == 0:
+        bill["status_date"] = None
+    valactiondate = isRealDate(bill["last_action_date"])
+    if valactiondate == 0:
+        bill["last_action_date"] = None
+    return bill
+
 def getAllStateBills():
     '''Gets full edited bill history of all states from LegiScan'''
     for state in getStates():
-        editStateBills(pullStateData(state),state)
+        compileStateBills(pullStateData(state),state)
 
-getAllStateBills()
+#getAllStateBills()
+compileStateBills(pullStateData("IN"),"IN")
+

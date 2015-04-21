@@ -1,6 +1,3 @@
-
-
-
 BEGIN;
 
 CREATE TABLE "users" (
