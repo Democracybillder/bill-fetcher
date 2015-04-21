@@ -23,6 +23,8 @@ CREATE TABLE "users" (
 CREATE TABLE "bills" (
 	"bill_id" integer,
 	"session" TEXT,
+	"year_start" TIMESTAMP,
+	"year_end" TIMESTAMP,
 	"official_id" TEXT,
 	"title" TEXT,
 	"scope_id" integer,
@@ -33,6 +35,7 @@ CREATE TABLE "bills" (
 	CONSTRAINT bills_pk PRIMARY KEY (bill_id)
 ) WITH (
   OIDS=FALSE
+);E
 );
 
 
