@@ -133,8 +133,6 @@ def updatedStateBills (masterList,session,state):
                 billsDesc.append(billDesc)
     billsDesc = tuple(billsDesc)
     billsLog = tuple(billsLog)
-    print 'len(billsDesc) =', len(billsDesc), 'len(billsLog) =', len(billsLog) 
-    print 'billsDesc =', billsDesc, 'billsLog =', billsLog
 
 def DBDate():
     ''' Gets most recent date from DB for last added data. For now, date for testing '''
