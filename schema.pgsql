@@ -1,5 +1,9 @@
 BEGIN;
 
+CREATE TABLE "update_log"(
+	last_updated TIMESTAMP
+	);
+
 CREATE TABLE "users" (
 	"user_id" integer,
 	"reg_timestamp" TIMESTAMP,
@@ -19,9 +23,7 @@ CREATE TABLE "users" (
 
 CREATE TABLE "bills" (
 	"bill_id" integer,
-	"session" TEXT,
-	"year_start" TIMESTAMP,
-	"year_end" TIMESTAMP,
+	"session_id" BIGINT,
 	"official_id" TEXT,
 	"title" TEXT,
 	"scope_id" integer,
@@ -35,7 +37,13 @@ CREATE TABLE "bills" (
 );
 
 
-
+CREATE TABLE "sessions" (
+	"session_id"	BIGSERIAL,
+	"session"	TEXT,
+	"year_start" SMALLINT,
+	"year_end" SMALLINT,
+	CONSTRAINT sessions_pk PRIMARY KEY (session_id)
+	);
 
 
 CREATE TABLE "user_bills" (
@@ -161,7 +169,7 @@ CREATE TABLE "legislator_votes" (
 );
 
 
-
+ALTER TABLE bills ADD CONSTRAINT bill_sessions_fk FOREIGN KEY (session_id) REFERENCES sessions(session_id);
 ALTER TABLE "legislator_votes" ADD CONSTRAINT legislator_votes_fk0 FOREIGN KEY (legislator_id) REFERENCES legislators(legislator_id);
 ALTER TABLE "legislator_votes" ADD CONSTRAINT legislator_votes_fk1 FOREIGN KEY (bill_id) REFERENCES bills(bill_id);
 ALTER TABLE "translations" ADD CONSTRAINT translations_fk0 FOREIGN KEY (bill_id) REFERENCES bills(bill_id);
