@@ -71,10 +71,7 @@ def compileStateBills(request, state):
 def editStateBills(request):
     '''Takes state bills request objects and edits it to db specifications'''
     original = request.json()
-    session = {}
-    session['session_name'] = original["masterlist"]["session"]["session_name"]
-    # session["year_start"] = original["masterlist"]["session"]["year_start"]
-    # session["year_end"] = original["masterlist"]["session"]["year_end"]
+    session = original["masterlist"]["session"]["session_name"]
     del original["masterlist"]["session"]
     masterList = original["masterlist"].values() # turns dict into list of bills (gets rid of useless number keys)
     return masterList, session

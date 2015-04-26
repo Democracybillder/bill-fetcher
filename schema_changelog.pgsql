@@ -1,2 +1,0 @@
-ALTER TABLE bills ADD COLUMN  year_start TIMESTAMP;
-ALTER TABLE bills ADD COLUMN  year_end TIMESTAMP;

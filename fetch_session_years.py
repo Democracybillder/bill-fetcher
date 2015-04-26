@@ -32,12 +32,12 @@ def compileStateSessions(request):
     		"session_id":instance["session_id"],
     		"year_start":instance["year_start"],
     		"year_end":instance["year_end"],
-    		"session_name":instance["session_name"]
+    		"session":instance["session_name"]
     		}
     	sessions.append(session)
     sessions = tuple(sessions)
-        #database = db
-    #database.insertbills('billder',sessions)
+    database = db
+    database.insertsessiondata('billder',sessions)
 
 def getAllStateSessions():
 	for state in getStates():
