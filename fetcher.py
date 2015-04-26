@@ -64,11 +64,11 @@ def isRealDate(date_text):
     except ValueError:
         return 0
 
-def objectToTuples(request, state, updated="YES"):
+def objectToTuples(request, state, updated=1):
     ''' Takes state bills request object and returns two tuples objects '''
     #print 'in objectToTuples'
     masterList, session = cleanRequest(request)
-    if updated == "YES":
+    if updated == 1:
         return updatedStateBills(masterList,session,state)
     else:
         return allStateBills(masterList,session,state)
@@ -138,14 +138,14 @@ def DBDate():
     ''' Gets most recent date from DB for last added data. For now, date for testing '''
     return datetime.datetime.strptime("2015-04-21", '%Y-%m-%d')
 
-def intoDB(billsDesc, billsLog):
+def insertIntoDB(billsDesc, billsLog):
     database = db
     database.insertbills('billder', billsDesc, billsLog)
 
 def getAllStateBills():
     ''' Gets full edited bill info of all states from LegiScan '''
     for state in getStates():
-        objectToTuples(requestData(state),state,"NO")
+        objectToTuples(requestData(state),state,0)
 
 def getUpdatedStateBills():
     ''' Gets updated bill info for all states from Legiscan '''
@@ -155,5 +155,5 @@ def getUpdatedStateBills():
 #objectToTuples(requestData('NY'),'NY')
 #getUpdatedStateBills()
 #getAllStateBills()
-#intoDB(objectToTuples(requestData("IN","getMasterList"),"IN"))
+#insertIntoDB(objectToTuples(requestData("IN","getMasterList"),"IN"))
 # NY bill 773487 status = 1 and statusdate = lastaction date (04/22)
