@@ -31,7 +31,9 @@ def insertbills(dbname, desc, log):
     insertbilldesc(dbname, desc)
     insertbilllog(dbname, log)
 
-
-
-
-
+def insertsessiondata(dbname,sessions):
+    """insert new session data into database"""
+    query = """ INSERT INTO sessions(session_id, year_start,
+        year_end, session) VALUES (%(session_id)s, %(year_start)s,
+    %(year_end)s, %(session)s) """
+    dbinserttuple(dbname, query, tups)
