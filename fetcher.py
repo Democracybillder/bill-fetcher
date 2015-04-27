@@ -138,7 +138,7 @@ def DBDate():
     ''' Gets most recent date from DB for last added data. For now, date for testing '''
     return datetime.datetime.strptime("2015-04-21", '%Y-%m-%d')
 
-def insertIntoDB(billsDesc, billsLog):
+def insertBillsIntoDB(billsDesc, billsLog):
     database = db
     database.insertbills('billder', billsDesc, billsLog)
 
@@ -155,5 +155,5 @@ def getUpdatedStateBills():
 #objectToTuples(requestData('NY'),'NY')
 #getUpdatedStateBills()
 #getAllStateBills()
-#insertIntoDB(objectToTuples(requestData("IN","getMasterList"),"IN"))
+#insertBillsIntoDB(objectToTuples(requestData("IN","getMasterList"),"IN"))
 # NY bill 773487 status = 1 and statusdate = lastaction date (04/22)
