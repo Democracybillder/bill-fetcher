@@ -5,9 +5,20 @@ import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
 import db
 import datetime
+import threading # for auto updating
 
+# To run automatically updating db
 
-# Wrapper methods:
+def updateDBEverySeconds(interval,number):
+    '''updates db every number of seconds (float) inputted a specified number 
+    of times (int)'''
+    if number <= 0:
+        print "Finished updating DB the specified number of times. (good job me)"
+    else:
+        getUpdatedStateBills()
+        threading.Timer(interval,updateDBEverySeconds,[interval,number-1]).start()
+
+# Wrapper methods for updating and initializing db
 
 def getAllStateBills():
     ''' Gets all full edited bill info from all states from LegiScan into db'''
