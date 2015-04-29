@@ -33,8 +33,8 @@ def updatelastdbmodification(dbname, date):
 
 def insertbilldesc(dbname, tups):
     """inserting bill descriptions to database"""
-    query = """ INSERT INTO bills(bill_id, session,
-        official_id, title, state, "desc") VALUES (%(bill_id)s, %(session)s,
+    query = """ INSERT INTO bills(bill_id, session_id,
+        official_id, title, state, "desc") VALUES (%(bill_id)s, %(session_id)s,
     %(number)s, %(title)s, %(state)s, %(description)s) """
     dbinserttuple(dbname, query, tups)
 

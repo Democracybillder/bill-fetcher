@@ -35,12 +35,14 @@ def compileStateSessions(request):
     		"session":instance["session_name"]
     		}
     	sessions.append(session)
-    sessions = tuple(sessions)
-    database = db
-    database.insertsessiondata('billder',sessions)
+    return tuple(sessions)
 
 def getAllStateSessions():
 	for state in getStates():
-		compileStateSessions(pullStateData(state))
+		insertBillsIntoDB(compileStateSessions(pullStateData(state)))
+
+def insertBillsIntoDB(sessions):
+    database = db
+    database.insertsessiondata('billder',sessions)
 
 getAllStateSessions()

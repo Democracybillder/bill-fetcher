@@ -22,8 +22,9 @@ def updateDBEverySeconds(interval,number):
 
 def getAllStateBills():
     ''' Gets all full edited bill info from all states from LegiScan into db'''
-    for state in aggregateAllSessions():
-        for session in state:                # Because object is list of tuples
+    stateSessions = aggregateAllSessions()
+    for state in stateSessions:
+        for session in stateSessions[state]:   # Because dict with tuple values
             objectToDB(requestData(session,'getMasterList'),state,0)
 
 def getUpdatedStateBills():
@@ -58,7 +59,7 @@ def allStateBills(masterList,session,state):
             billDesc = {
                 "state": state,
                 "bill_id":bill["bill_id"],
-                "session": session,
+                "session_id": session,
                 "number": bill["number"],
                 "title": bill["title"],
                 "description": bill["description"]
@@ -72,8 +73,7 @@ def allStateBills(masterList,session,state):
                 }
             billsDesc.append(billDesc)
             billsLog.append(billLog)
-    billsDesc = tuple(billsDesc)
-    billsLog = tuple(billsLog)
+    billsDesc, billsLog = tuple(billsDesc), tuple(billsLog)
     return billsDesc, billsLog
 
 def updatedStateBills (masterList,session,state):
@@ -101,7 +101,7 @@ def updatedStateBills (masterList,session,state):
                 billDesc = {
                     "state": state,
                     "bill_id":bill["bill_id"],
-                    "session": session,
+                    "session_id": session,
                     "number": bill["number"],
                     "title": bill["title"],
                     "description": bill["description"]
@@ -158,12 +158,12 @@ def compileStateSessionIDs(request):
     return sessions
 
 def aggregateAllSessions():
-    '''generates list of tuples, each state with all of its session ids from 
+    '''generates dict of states for keys and session id tuples for values from 
     Legiscan'''
-    stateSessions = []
+    stateSessions = {}
     for state in getStates():
         ids = compileStateSessionIDs(requestData(state,'getSessionList'))
-        stateSessions.append(ids)
+        stateSessions[state] = ids
     return stateSessions
 
 # Functions to facilitate date comparisons
@@ -197,5 +197,6 @@ def isRealDate(date_text):
 def DBDate():
     ''' Gets most recent date from DB for last added data. For now, date for testing '''
     return datetime.datetime.strptime("2015-04-21", '%Y-%m-%d')
+
 getAllStateBills()
 
