@@ -1,12 +1,22 @@
 #!/usr/bin/python
 '''db layer for state bill fetcher'''
 import psycopg2
+import datetime
 
 def dbinserttuple(dbname, query, tup):
     """wrapper method to handle db connections and tuple inserts"""
     conn = psycopg2.connect(dbname=dbname)
     cur = conn.cursor()
     cur.executemany(query, tup)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def dbmodify(dbname, query, params):
+    """wrapper method to handle db connections and tuple inserts"""
+    conn = psycopg2.connect(dbname=dbname)
+    cur = conn.cursor()
+    cur.execute(query, params)
     conn.commit()
     cur.close()
     conn.close()
@@ -26,10 +36,10 @@ def getlastdbmodification(dbname):
     query = """ SELECT MAX(last_updated) FROM update_log """
     return dbselect(dbname, query)
 
-def updatelastdbmodification(dbname, date):
+def updatelastdbmodification(dbname):
     """ updating the last timestamp of data modification in the db"""
-    query = """ UPDATE  update_log SET last_updated = %s """
-    dbinserttuple(dbname, query, date)
+    query = """ UPDATE  update_log SET last_updated = now() """
+    dbmodify(dbname, query, '')
 
 def insertbilldesc(dbname, tups):
     """inserting bill descriptions to database"""
@@ -56,3 +66,7 @@ def insertsessiondata(dbname, tups):
     year_end, session) VALUES (%(session_id)s, %(year_start)s,
     %(year_end)s, %(session)s) """
     dbinserttuple(dbname, query, tups)
+
+updatelastdbmodification('billder')
+#getlastdbmodification('billder')
+

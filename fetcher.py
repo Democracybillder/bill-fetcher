@@ -26,20 +26,23 @@ def getAllStateBills():
     for state in stateSessions:
         for session in stateSessions[state]:   # Because dict with tuple values
             objectToDB(requestData(session,'getMasterList'),state,0)
+    updatelastdbmodification('billder') # update db update log
 
 def getUpdatedStateBills():
     ''' Gets updated bill info for all states from Legiscan into db'''
+    updated = db.getlastdbmodification('billder')
     for state in getStates():
-        objectToDB(requestData(state,'getMasterList'),state,1)
+        objectToDB(requestData(state,'getMasterList'),state,updated[0][0])
+    updatelastdbmodification('billder')    # update db update log
 
 def objectToDB(request, state, updated):
     ''' Wrapper function that organizes use of update and non-update functions'''
     masterList, session = cleanRequest(request)
-    if updated == 1:
-        return insertBillsIntoDB(updatedStateBills(masterList,session,state))
-    elif updated == 0:
+    if updated == 0:
         return insertBillsIntoDB(allStateBills(masterList,session,state))
-    else: print "argument must be either '1' for updating db or '0' for initializing db"
+    elif type(updated) == datetime.datetime:
+        return insertBillsIntoDB(updatedStateBills(masterList,session,state,updated))
+    else: print "argument must be either db last modification date for updating db or '0' for initializing db"
 
 # Inserting tuples into db
 
@@ -76,18 +79,20 @@ def allStateBills(masterList,session,state):
     billsDesc, billsLog = tuple(billsDesc), tuple(billsLog)
     return billsDesc, billsLog
 
-def updatedStateBills (masterList,session,state):
+def updatedStateBills (masterList,session,state,updated):
     ''' Takes full bill tuples and state name and returns updated bills only 
     in two tuples '''
     billsDesc =[]
     billsLog = []
-    lastDBDate = DBDate()
+    count_new_bills = 0
+    count_updates = 0
     for bill in masterList:
         bill = cleanInvalidDates(bill)
         billDate = isDateNone(bill["last_action_date"])
-        if billDate < lastDBDate: # don't need old data
+        if billDate < updated: # don't need old data
             continue
         else:
+            count_updates += 1
             billLog = {
                 "bill_id": bill["bill_id"],
                 "status_date": bill["status_date"],
@@ -98,6 +103,7 @@ def updatedStateBills (masterList,session,state):
             billsLog.append(billLog)
             statusDate = isDateNone(bill["status_date"])
             if statusDate == billDate: # new bill
+                count_new_bills +=1
                 billDesc = {
                     "state": state,
                     "bill_id":bill["bill_id"],
@@ -107,6 +113,7 @@ def updatedStateBills (masterList,session,state):
                     "description": bill["description"]
                     }
                 billsDesc.append(billDesc)
+    print 'count_new_bills =', count_new_bills, 'count_updates =', count_updates
     billsDesc = tuple(billsDesc)
     billsLog = tuple(billsLog)
     return billsDesc, billsLog
@@ -184,7 +191,8 @@ def isDateNone(date):
         billDate = datetime.datetime.strptime(date,'%Y-%m-%d')
         return billDate
     except TypeError:
-        return datetime.datetime.now() #So appears to be updated, just in case
+        print datetime.datetime.now() #So appears to be updated, just in case
+        assert False
 
 def isRealDate(date_text):
     ''' Checks if date given is real or corrupt data '''
@@ -194,9 +202,7 @@ def isRealDate(date_text):
     except ValueError:
         return 0
 
-def DBDate():
-    ''' Gets most recent date from DB for last added data. For now, date for testing '''
-    return datetime.datetime.strptime("2015-04-21", '%Y-%m-%d')
 
-getAllStateBills()
+getUpdatedStateBills()
+#getAllStateBills()
 
