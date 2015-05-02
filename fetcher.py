@@ -1,6 +1,8 @@
 #!/usr/bin/python
 ''' pulls bill data from the legiscan api and populates the db. 
-getAllStateBills() initiates db, getUpdatedStateBills updates existing db '''
+getAllStateBills() initiates db, getUpdatedStateBills updates existing db
+WARNING: Do not run the code close to midnight, the date changes will have
+adverse effects '''
 import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
 import db
@@ -48,18 +50,57 @@ def objectToDB(request, state, updated):
 
 def insertBillsIntoDB(data):
     billsDesc, billsLog = data
-    database = db
-    database.insertbills('billder', billsDesc, billsLog)
+    db.insertbills('billder', billsDesc, billsLog)
 
 # Parsing through objects to distill tuples
 
 def allStateBills(masterList,session,state):
-    ''' Takes full state bills list and returns two tuples objects '''
+    ''' Takes full state bills list, session id and state and returns two tuples objects '''
     billsDesc = []
     billsLog = []
     for bill in masterList:
             bill = cleanInvalidDates(bill)
-            billDesc = {
+            billDesc = distillBillDesc(bill, state, session)
+            billsDesc.append(billDesc)
+            billLog = distillBillLog(bill)
+            billsLog.append(billLog)
+    billsDesc, billsLog = tuple(billsDesc), tuple(billsLog)
+    return billsDesc, billsLog
+
+def updatedStateBills (masterList,session,state,updated):
+    ''' Takes full bill tuples, state name, session id and db last update and returns 
+    updated bills only in two tuples '''
+    billsDesc =[]
+    billsLog = []
+    for bill in masterList:
+        bill = cleanInvalidDates(bill)
+        billDate = isRealDate(bill["last_action_date"],1)
+        if billDate == None or billDate > updated:
+            billLog = distillBillLog(bill)
+            billsLog.append(billLog)
+            status = bill["status"]
+            statusDate = isRealDate(bill["status_date"],1)
+            if statusDate == billDate and int(status) == 1: # new bill
+                billDesc = distillBillDesc(bill, state, session)
+                billsDesc.append(billDesc)
+    billsDesc = tuple(billsDesc)
+    billsLog = tuple(billsLog)
+    return billsDesc, billsLog
+
+def distillBillLog(bill):
+    '''takes bill and returns billLog Tuple'''
+    billLog = {
+                "bill_id": bill["bill_id"],
+                "status_date": bill["status_date"],
+                "status": bill["status"],
+                "last_action_date": bill["last_action_date"],
+                "last_action": bill["last_action"]
+                }
+    return billLog
+
+def distillBillDesc(bill, state, session):
+    '''takes bill and returns billDesc Tuple'''
+    billDesc = {
                 "state": state,
                 "bill_id":bill["bill_id"],
                 "session_id": session,
@@ -67,56 +108,7 @@ def allStateBills(masterList,session,state):
                 "title": bill["title"],
                 "description": bill["description"]
                 }
-            billLog = {
-                "bill_id": bill["bill_id"],
-                "status_date": bill["status_date"],
-                "status": bill["status"],
-                "last_action_date": bill["last_action_date"],
-                "last_action": bill["last_action"]
-                }
-            billsDesc.append(billDesc)
-            billsLog.append(billLog)
-    billsDesc, billsLog = tuple(billsDesc), tuple(billsLog)
-    return billsDesc, billsLog
-
-def updatedStateBills (masterList,session,state,updated):
-    ''' Takes full bill tuples and state name and returns updated bills only 
-    in two tuples '''
-    billsDesc =[]
-    billsLog = []
-    count_new_bills = 0
-    count_updates = 0
-    for bill in masterList:
-        bill = cleanInvalidDates(bill)
-        billDate = isDateNone(bill["last_action_date"])
-        if billDate < updated: # don't need old data
-            continue
-        else:
-            count_updates += 1
-            billLog = {
-                "bill_id": bill["bill_id"],
-                "status_date": bill["status_date"],
-                "status": bill["status"],
-                "last_action_date": bill["last_action_date"],
-                "last_action": bill["last_action"]
-                }
-            billsLog.append(billLog)
-            statusDate = isDateNone(bill["status_date"])
-            if statusDate == billDate: # new bill
-                count_new_bills +=1
-                billDesc = {
-                    "state": state,
-                    "bill_id":bill["bill_id"],
-                    "session_id": session,
-                    "number": bill["number"],
-                    "title": bill["title"],
-                    "description": bill["description"]
-                    }
-                billsDesc.append(billDesc)
-    print 'count_new_bills =', count_new_bills, 'count_updates =', count_updates
-    billsDesc = tuple(billsDesc)
-    billsLog = tuple(billsLog)
-    return billsDesc, billsLog
+    return billDesc
 
 # Legiscan APIs/ reference files:
 
@@ -176,33 +168,20 @@ def aggregateAllSessions():
 # Functions to facilitate date comparisons
 
 def cleanInvalidDates(bill):
-    ''' Checks if dates in bill are real '''
-    valstatdate = isRealDate(bill["status_date"])
-    if valstatdate == 0:
-        bill["status_date"] = None
-    valactiondate = isRealDate(bill["last_action_date"])
-    if valactiondate == 0:
-        bill["last_action_date"] = None
+    ''' Makes sure bill is either None or datetime object if needed '''
+    bill["status_date"] = isRealDate(bill["status_date"])
+    bill["last_action_date"] = isRealDate(bill["last_action_date"])
     return bill
 
-def isDateNone(date):
-    '''Replaces "None" dates with today to be updated after date comparisons'''
+def isRealDate(date_text,compare=0):
+    ''' Checks if date given is real or corrupt, convert string to datetime if needed'''
     try:
-        billDate = datetime.datetime.strptime(date,'%Y-%m-%d')
-        return billDate
-    except TypeError:
-        print datetime.datetime.now() #So appears to be updated, just in case
-        assert False
-
-def isRealDate(date_text):
-    ''' Checks if date given is real or corrupt data '''
-    try:
-        datetime.datetime.strptime(str(date_text), '%Y-%m-%d')
-        return 1
+        date = datetime.datetime.strptime(str(date_text), '%Y-%m-%d')
+        if compare == 1:
+            return date
+        else:
+            return date_text
     except ValueError:
-        return 0
+        return None
 
-
-getUpdatedStateBills()
-#getAllStateBills()
 

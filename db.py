@@ -67,6 +67,4 @@ def insertsessiondata(dbname, tups):
     %(year_end)s, %(session)s) """
     dbinserttuple(dbname, query, tups)
 
-updatelastdbmodification('billder')
-#getlastdbmodification('billder')
 
