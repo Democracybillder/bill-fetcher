@@ -29,7 +29,7 @@ CREATE TABLE "bills" (
 	"scope_id" integer,
 	"state" varchar,
 	"city_id" integer,
-	"desc" TEXT,
+	"descr" TEXT,
 	"tags" TEXT,
 	CONSTRAINT bills_pk PRIMARY KEY (bill_id)
 ) WITH (
