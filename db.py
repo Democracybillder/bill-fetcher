@@ -10,7 +10,6 @@ def dbinserttuple(dbname, query, tup):
     conn.commit()
     cur.close()
     conn.close()
-    print 'All done!!!'
 
 def dbmodify(dbname, query, params):
     """wrapper method to handle db connections and tuple inserts"""
