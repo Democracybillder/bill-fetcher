@@ -1,6 +1,6 @@
 #!/usr/bin/python
 ''' pulls bill data from the legiscan api and populates the db. 
-getAllStateBills() initiates db, getUpdatedStateBills updates existing db
+get_all_state_bills() initiates db, get_all_state_bills updates existing db
 WARNING: Do not run the code close to midnight, the date changes will have
 adverse effects '''
 import csv
@@ -11,96 +11,96 @@ import threading # for auto updating
 
 # To run automatically updating db
 
-def updateDBEverySeconds(interval,number):
+def update_db_every_seconds(interval, number):
     '''updates db every number of seconds (float) inputted a specified number 
     of times (int)'''
     if number <= 0:
         print "Finished updating DB the specified number of times. (good job me)"
     else:
-        getUpdatedStateBills()
-        threading.Timer(interval,updateDBEverySeconds,[interval,number-1]).start()
+        get_all_state_bills()
+        threading.Timer(interval, update_db_every_seconds, [interval, number-1]).start()
 
 # Wrapper methods for updating and initializing db
 
-def getAllStateBills():
+def get_all_state_bills():
     ''' Gets all full edited bill info from all states from LegiScan into db'''
-    stateSessions = aggregateAllSessions()
-    for state in stateSessions:
-        for session in stateSessions[state]:   # Because dict with tuple values
-            objectToDB(requestData(session,'getMasterList'),state,0)
-    updatelastdbmodification('billder') # update db update log
+    state_sessions = aggregate_all_sessions()
+    for state in state_sessions:
+        for session in state_sessions[state]:   # Because dict with tuple values
+            object_to_db(request_data(session, 'getMasterList'), state, 0)
+    db.updatelastdbmodification('billder') # update db update log
 
-def getUpdatedStateBills():
+def get_updated_state_bills():
     ''' Gets updated bill info for all states from Legiscan into db'''
     updated = db.getlastdbmodification('billder')
-    for state in getStates():
-        objectToDB(requestData(state,'getMasterList'),state,updated[0][0])
-    updatelastdbmodification('billder')    # update db update log
+    for state in get_states():
+        object_to_db(request_data(state, 'getMasterList'), state, updated[0][0])
+    db.updatelastdbmodification('billder')    # update db update log
 
-def objectToDB(request, state, updated):
+def object_to_db(request, state, updated):
     ''' Wrapper function that organizes use of update and non-update functions'''
-    masterList, session = cleanRequest(request)
+    master_list, session = clean_request(request)
     if updated == 0:
-        return insertBillsIntoDB(allStateBills(masterList,session,state))
-    elif type(updated) == datetime.datetime:
-        return insertBillsIntoDB(updatedStateBills(masterList,session,state,updated))
+        return insert_bills_into_db(all_state_bills(master_list, session, state))
+    elif isinstance(updated, datetime.datetime):
+        return insert_bills_into_db(updated_state_bills(master_list, session, state, updated))
     else: print "argument must be either db last modification date for updating db or '0' for initializing db"
 
 # Inserting tuples into db
 
-def insertBillsIntoDB(data):
-    billsDesc, billsLog = data
-    db.insertbills('billder', billsDesc, billsLog)
+def insert_bills_into_db(data):
+    bills_desc, bills_log = data
+    db.insertbills('billder', bills_desc, bills_log)
 
 # Parsing through objects to distill tuples
 
-def allStateBills(masterList,session,state):
+def all_state_bills(master_list, session, state):
     ''' Takes full state bills list, session id and state and returns two tuples objects '''
-    billsDesc = []
-    billsLog = []
-    for bill in masterList:
-            bill = cleanInvalidDates(bill)
-            billDesc = distillBillDesc(bill, state, session)
-            billsDesc.append(billDesc)
-            billLog = distillBillLog(bill)
-            billsLog.append(billLog)
-    billsDesc, billsLog = tuple(billsDesc), tuple(billsLog)
-    return billsDesc, billsLog
+    bills_desc = []
+    bills_log = []
+    for bill in master_list:
+            bill = clean_invalid_dates(bill)
+            bill_desc = distill_bill_desc(bill, state, session)
+            bills_desc.append(bill_desc)
+            bill_log = distill_bill_log(bill)
+            bills_log.append(bill_log)
+    bills_desc, bills_log = tuple(bills_desc), tuple(bills_log)
+    return bills_desc, bills_log
 
-def updatedStateBills (masterList,session,state,updated):
+def updated_state_bills(master_list, session, state, updated):
     ''' Takes full bill tuples, state name, session id and db last update and returns 
     updated bills only in two tuples '''
-    billsDesc =[]
-    billsLog = []
-    for bill in masterList:
-        bill = cleanInvalidDates(bill)
-        billDate = isRealDate(bill["last_action_date"],1)
-        if billDate == None or billDate > updated:
-            billLog = distillBillLog(bill)
-            billsLog.append(billLog)
+    bills_desc = []
+    bills_log = []
+    for bill in master_list:
+        bill = clean_invalid_dates(bill)
+        bill_date = is_real_date(bill["last_action_date"], 1)
+        if bill_date == None or bill_date > updated:
+            bill_log = distill_bill_log(bill)
+            bills_log.append(bill_log)
             status = bill["status"]
-            statusDate = isRealDate(bill["status_date"],1)
-            if statusDate == billDate and int(status) == 1: # new bill
-                billDesc = distillBillDesc(bill, state, session)
-                billsDesc.append(billDesc)
-    billsDesc = tuple(billsDesc)
-    billsLog = tuple(billsLog)
-    return billsDesc, billsLog
+            status_date = is_real_date(bill["status_date"], 1)
+            if status_date == bill_date and int(status) == 1: # new bill
+                bill_desc = distill_bill_desc(bill, state, session)
+                bills_desc.append(bill_desc)
+    bills_desc = tuple(bills_desc)
+    bills_log = tuple(bills_log)
+    return bills_desc, bills_log
 
-def distillBillLog(bill):
+def distill_bill_log(bill):
     '''takes bill and returns billLog Tuple'''
-    billLog = {
+    bill_log = {
                 "bill_id": bill["bill_id"],
                 "status_date": bill["status_date"],
                 "status": bill["status"],
                 "last_action_date": bill["last_action_date"],
                 "last_action": bill["last_action"]
                 }
-    return billLog
+    return bill_log
 
-def distillBillDesc(bill, state, session):
+def distill_bill_desc(bill, state, session):
     '''takes bill and returns billDesc Tuple'''
-    billDesc = {
+    bill_desc = {
                 "state": state,
                 "bill_id":bill["bill_id"],
                 "session_id": session,
@@ -108,11 +108,11 @@ def distillBillDesc(bill, state, session):
                 "title": bill["title"],
                 "description": bill["description"]
                 }
-    return billDesc
+    return bill_desc
 
 # Legiscan APIs/ reference files:
 
-def getStates():
+def get_states():
     ''' Returns list of LegiScan Abbreviated State names from LegiScan source 
     csv '''
     states = []
@@ -123,30 +123,30 @@ def getStates():
     states = states[1:53]
     return states
 
-def requestData(value,op):
+def request_data(value, operation):
     ''' Takes string for state or int for session id and returns request object 
     of bills for a given state from legiscan '''
-    if type(value) == str:
+    if isinstance(value, str):
         param = 'state'
-    elif type(value) == int:
+    elif isinstance(value, int):
         param = 'id'
     params = {'key':'ff6da19238f87945db1c0dd5d6bc1674',
-              'op': op,
+              'op': operation,
               param : value}
     req = requests.get('http://api.legiscan.com/?', params=params)
     return req
 
 # Helper functions to clean request objects
 
-def cleanRequest(request):
+def clean_request(request):
     ''' Parses session data and bill data from request object '''
     original = request.json()
     session = original["masterlist"]["session"]["session_id"]
     del original["masterlist"]["session"]
-    masterList = original["masterlist"].values() # turns dict into list of bills (gets rid of useless number keys)
-    return masterList, session
+    master_list = original["masterlist"].values() # turns dict into list of bills (gets rid of useless number keys)
+    return master_list, session
 
-def compileStateSessionIDs(request):
+def compile_state_session_ids(request):
     '''Takes state sessions request objects and converts to tuple'''
     original = request.json()
     sessions = []
@@ -156,24 +156,24 @@ def compileStateSessionIDs(request):
     sessions = tuple(sessions)
     return sessions
 
-def aggregateAllSessions():
+def aggregate_all_sessions():
     '''generates dict of states for keys and session id tuples for values from 
     Legiscan'''
-    stateSessions = {}
-    for state in getStates():
-        ids = compileStateSessionIDs(requestData(state,'getSessionList'))
-        stateSessions[state] = ids
-    return stateSessions
+    state_sessions = {}
+    for state in get_states():
+        ids = compile_state_session_ids(request_data(state, 'getSessionList'))
+        state_sessions[state] = ids
+    return state_sessions
 
 # Functions to facilitate date comparisons
 
-def cleanInvalidDates(bill):
+def clean_invalid_dates(bill):
     ''' Makes sure bill is either None or datetime object if needed '''
-    bill["status_date"] = isRealDate(bill["status_date"])
-    bill["last_action_date"] = isRealDate(bill["last_action_date"])
+    bill["status_date"] = is_real_date(bill["status_date"])
+    bill["last_action_date"] = is_real_date(bill["last_action_date"])
     return bill
 
-def isRealDate(date_text,compare=0):
+def is_real_date(date_text, compare=0):
     ''' Checks if date given is real or corrupt, convert string to datetime if needed'''
     try:
         date = datetime.datetime.strptime(str(date_text), '%Y-%m-%d')
@@ -183,5 +183,7 @@ def isRealDate(date_text,compare=0):
             return date_text
     except ValueError:
         return None
+
+get_all_state_bills()
 
 
