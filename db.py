@@ -1,7 +1,6 @@
 #!/usr/bin/python
 '''db layer for state bill fetcher'''
 import psycopg2
-import datetime
 
 def dbinserttuple(dbname, query, tup):
     """wrapper method to handle db connections and tuple inserts"""
@@ -11,6 +10,7 @@ def dbinserttuple(dbname, query, tup):
     conn.commit()
     cur.close()
     conn.close()
+    print 'All done!!!'
 
 def dbmodify(dbname, query, params):
     """wrapper method to handle db connections and tuple inserts"""
@@ -66,5 +66,10 @@ def insertsessiondata(dbname, tups):
     year_end, session) VALUES (%(session_id)s, %(year_start)s,
     %(year_end)s, %(session)s) """
     dbinserttuple(dbname, query, tups)
+
+def get_bill_id(bill):
+    """finds out whether bill exists in bills by bill_id"""
+    query = """ SELECT 1 FROM bills WHERE bill_id = %s """ % bill
+    return dbselect('billder', query)
 
 
