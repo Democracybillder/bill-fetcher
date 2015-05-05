@@ -4,6 +4,26 @@
 import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
 import db
+import billdb
+import json # for configuration file parsing
+
+
+##################################################
+## Get database connection details from json config file
+## SHould be moved into the main file once there is one and the program is  neater
+
+
+def dbinit():
+    """ initializing db connection """
+    with open('config.json') as json_conf_file:
+        conf = json.load(json_conf_file)
+    database = db.DB(conf["postgres"])
+
+    return billdb.BillDB(database)
+
+
+BILLDB = dbinit()
+####################################################
 
 def getStates():
     '''Returns list of LegiScan Abbreviated State names from LegiScan source csv'''
@@ -42,7 +62,6 @@ def getAllStateSessions():
 		insertBillsIntoDB(compileStateSessions(pullStateData(state)))
 
 def insertBillsIntoDB(sessions):
-    database = db
-    database.insertsessiondata('billder',sessions)
+    BILLDB.insert_session_data(sessions)
 
 getAllStateSessions()

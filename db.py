@@ -1,72 +1,46 @@
 #!/usr/bin/python
-'''db layer for state bill fetcher'''
+'''db access wrapper'''
+
 import psycopg2
-import datetime
 
-def dbinserttuple(dbname, query, tup):
-    """wrapper method to handle db connections and tuple inserts"""
-    conn = psycopg2.connect(dbname=dbname)
-    cur = conn.cursor()
-    cur.executemany(query, tup)
-    conn.commit()
-    cur.close()
-    conn.close()
+class DB(object):
+    """db wrapper"""
+    _db_connection = None
+    _db_cur = None
 
-def dbmodify(dbname, query, params):
-    """wrapper method to handle db connections and tuple inserts"""
-    conn = psycopg2.connect(dbname=dbname)
-    cur = conn.cursor()
-    cur.execute(query, params)
-    conn.commit()
-    cur.close()
-    conn.close()
+    # db connection details
+    _db_conf = None
 
-def dbselect(dbname, query):
-    """wrapper method to handle db connections and selects"""
-    conn = psycopg2.connect(dbname=dbname)
-    cur = conn.cursor()
-    cur.execute(query)
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return rows
 
-def getlastdbmodification(dbname):
-    """ fetching the last timestamp of data modification from the db"""
-    query = """ SELECT MAX(last_updated) FROM update_log """
-    return dbselect(dbname, query)
+    def __init__(self, conf):
+        """initializing a db wrapper object
+        by reading connection details from configuration object"""
 
-def updatelastdbmodification(dbname):
-    """ updating the last timestamp of data modification in the db"""
-    query = """ UPDATE  update_log SET last_updated = now() """
-    dbmodify(dbname, query, '')
+        self._db_conf = conf
+        # creating connection
+        self._db_connection = psycopg2.connect(
+            database=self._db_conf["db"],
+            user=self._db_conf["user"],
+            password=self._db_conf["passwd"],
+            host=self._db_conf["host"])
 
-def insertbilldesc(dbname, tups):
-    """inserting bill descriptions to database"""
-    query = """ INSERT INTO bills(bill_id, session_id,
-        official_id, title, state, "desc") VALUES (%(bill_id)s, %(session_id)s,
-    %(number)s, %(title)s, %(state)s, %(description)s) """
-    dbinserttuple(dbname, query, tups)
+        self._db_cur = self._db_connection.cursor()
 
-def insertbilllog(dbname, tups):
-    """inserting bill logs to database"""
-    query = """ INSERT INTO bill_log(bill_id, status_date,
-        status, last_action_date, last_action) VALUES (%(bill_id)s, %(status_date)s,
-    %(status)s, %(last_action_date)s, %(last_action)s) """
-    dbinserttuple(dbname, query, tups)
+    def modify_many(self, query, params):
+        """insert or update multiple rows"""
+        return self._db_cur.executemany(query, params)
 
-def insertbills(dbname, desc, log):
-    """insert all bill data to database"""
-    insertbilldesc(dbname, desc)
-    insertbilllog(dbname, log)
+    def modify_one(self, query, params):
+        """ insert or update one row """
+        return self._db_cur.execute(query, params)
 
-def insertsessiondata(dbname, tups):
-    """insert new session data into database"""
-    query = """ INSERT INTO sessions(session_id, year_start,
-    year_end, session) VALUES (%(session_id)s, %(year_start)s,
-    %(year_end)s, %(session)s) """
-    dbinserttuple(dbname, query, tups)
+    def select(self, query, params):
+        """ select rows """
+        self._db_cur.execute(query, params)
+        rows = self._db_cur.fetchall()
+        return rows
 
-updatelastdbmodification('billder')
-#getlastdbmodification('billder')
-
+    def __del__(self):
+        """ gracefully terminating db connection """
+        self._db_cur.close()
+        self._db_connection.close()
