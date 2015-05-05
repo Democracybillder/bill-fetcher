@@ -4,10 +4,27 @@ getAllStateBills() initiates db, getUpdatedStateBills updates existing db '''
 import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
 import db
+import billdb
 import datetime
 import threading # for auto updating
+import json # for configuration file parsing
 
 
+##################################################
+## Get database connection details from json config file
+## SHould be moved into the main file once there is one and the program is  neater
+
+
+def dbinit():
+    with open('config.json') as json_conf_file:
+        conf = json.load(json_conf_file)
+    database = db.DB(conf)
+
+    return billdb.BillDB(database)
+
+
+BILLDB = dbinit()
+####################################################
 
 # To run automatically updating db
 
@@ -28,15 +45,14 @@ def getAllStateBills():
     for state in stateSessions:
         for session in stateSessions[state]:   # Because dict with tuple values
             objectToDB(requestData(session,'getMasterList'),state,0)
-    updatelastdbmodification('billder') # update db update log
+    BILLDB.update_last_db_modification() # update db update log
 
 def getUpdatedStateBills():
     ''' Gets updated bill info for all states from Legiscan into db'''
-    database = db.BillDB()
-    updated = database.getlastdbmodification()
+    updated = BILLDB.get_last_db_modification()
     for state in getStates():
         objectToDB(requestData(state,'getMasterList'),state,updated[0][0])
-    updatelastdbmodification('billder')    # update db update log
+    BILLDB.update_last_db_modification()    # update db update log
 
 def objectToDB(request, state, updated):
     ''' Wrapper function that organizes use of update and non-update functions'''
@@ -50,9 +66,8 @@ def objectToDB(request, state, updated):
 # Inserting tuples into db
 
 def insertBillsIntoDB(data):
-    database = db.BillDB()
     billsDesc, billsLog = data
-    database.insertbills(billsDesc, billsLog)
+    BILLDB.insert_bills(billsDesc, billsLog)
 
 # Parsing through objects to distill tuples
 
