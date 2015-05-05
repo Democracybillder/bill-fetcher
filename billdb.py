@@ -44,3 +44,8 @@ class BillDB(object):
         year_end, session) VALUES (%(session_id)s, %(year_start)s,
         %(year_end)s, %(session)s) """
         self._db.modify_many(query, tups)
+
+    def get_bill_id(self, bill):
+        """finds out whether bill exists in bills by bill_id"""
+        query = """ SELECT 1 FROM bills WHERE bill_id = %s """
+        return self._db.dbselect(query, bill)

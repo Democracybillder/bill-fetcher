@@ -16,9 +16,10 @@ import json # for configuration file parsing
 
 
 def dbinit():
+    """ initializing db connection """
     with open('config.json') as json_conf_file:
         conf = json.load(json_conf_file)
-    database = db.DB(conf)
+    database = db.DB(conf["postgres"])
 
     return billdb.BillDB(database)
 
@@ -219,8 +220,3 @@ def isRealDate(date_text):
         return 1
     except ValueError:
         return 0
-
-
-#getUpdatedStateBills()
-getAllStateBills()
-
