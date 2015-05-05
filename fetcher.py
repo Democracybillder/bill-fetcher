@@ -1,5 +1,5 @@
 #!/usr/bin/python
-''' pulls bill data from the legiscan api and populates the db. 
+''' pulls bill data from the legiscan api and populates the db.
 getAllStateBills() initiates db, getUpdatedStateBills updates existing db '''
 import csv
 import requests # requests needs to be installed for this to work ($ git clone git://github.com/kennethreitz/requests.git)
@@ -7,10 +7,12 @@ import db
 import datetime
 import threading # for auto updating
 
+
+
 # To run automatically updating db
 
 def updateDBEverySeconds(interval,number):
-    '''updates db every number of seconds (float) inputted a specified number 
+    '''updates db every number of seconds (float) inputted a specified number
     of times (int)'''
     if number <= 0:
         print "Finished updating DB the specified number of times. (good job me)"
@@ -30,7 +32,8 @@ def getAllStateBills():
 
 def getUpdatedStateBills():
     ''' Gets updated bill info for all states from Legiscan into db'''
-    updated = db.getlastdbmodification('billder')
+    database = db.BillDB()
+    updated = database.getlastdbmodification()
     for state in getStates():
         objectToDB(requestData(state,'getMasterList'),state,updated[0][0])
     updatelastdbmodification('billder')    # update db update log
@@ -47,9 +50,9 @@ def objectToDB(request, state, updated):
 # Inserting tuples into db
 
 def insertBillsIntoDB(data):
+    database = db.BillDB()
     billsDesc, billsLog = data
-    database = db
-    database.insertbills('billder', billsDesc, billsLog)
+    database.insertbills(billsDesc, billsLog)
 
 # Parsing through objects to distill tuples
 
@@ -80,7 +83,7 @@ def allStateBills(masterList,session,state):
     return billsDesc, billsLog
 
 def updatedStateBills (masterList,session,state,updated):
-    ''' Takes full bill tuples and state name and returns updated bills only 
+    ''' Takes full bill tuples and state name and returns updated bills only
     in two tuples '''
     billsDesc =[]
     billsLog = []
@@ -121,7 +124,7 @@ def updatedStateBills (masterList,session,state,updated):
 # Legiscan APIs/ reference files:
 
 def getStates():
-    ''' Returns list of LegiScan Abbreviated State names from LegiScan source 
+    ''' Returns list of LegiScan Abbreviated State names from LegiScan source
     csv '''
     states = []
     with open('reference-files/state.csv', 'rb') as csvfile:
@@ -132,7 +135,7 @@ def getStates():
     return states
 
 def requestData(value,op):
-    ''' Takes string for state or int for session id and returns request object 
+    ''' Takes string for state or int for session id and returns request object
     of bills for a given state from legiscan '''
     if type(value) == str:
         param = 'state'
@@ -165,7 +168,7 @@ def compileStateSessionIDs(request):
     return sessions
 
 def aggregateAllSessions():
-    '''generates dict of states for keys and session id tuples for values from 
+    '''generates dict of states for keys and session id tuples for values from
     Legiscan'''
     stateSessions = {}
     for state in getStates():
@@ -203,6 +206,6 @@ def isRealDate(date_text):
         return 0
 
 
-getUpdatedStateBills()
-#getAllStateBills()
+#getUpdatedStateBills()
+getAllStateBills()
 

@@ -12,6 +12,10 @@ CREATE TABLE "sessions" (
 	CONSTRAINT sessions_pk PRIMARY KEY (session_id)
 	);
 
+CREATE TABLE "update_log"(
+	last_updated TIMESTAMP
+	);
+
 ALTER TABLE bills ADD COLUMN session_id BIGINT;
 
 INSERT INTO sessions(session)
