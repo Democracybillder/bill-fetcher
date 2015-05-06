@@ -11,10 +11,4 @@ def is_real_date(date_text, convert=0):
             return date_text
     except ValueError:
         return None
-
-def clean_bill_dates(bill):
-    ''' Makes sure bill is either None or datetime object if needed '''
-    bill["status_date"] = is_real_date(bill["status_date"])
-    bill["last_action_date"] = is_real_date(bill["last_action_date"])
-    return bill
     

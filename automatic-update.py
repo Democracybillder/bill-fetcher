@@ -1,7 +1,7 @@
 ''' To run automatically updating db '''
 
 import fetcher
-import threading 
+import threading
 
 def update_db_every_seconds(interval, number):
     '''updates db every number of seconds (float) inputted a specified number
