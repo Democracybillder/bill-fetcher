@@ -8,7 +8,7 @@ class DB(object):
     _db_connection = None
     _db_cur = None
 
-    # db connection details
+    # db connection detailsg
     _db_conf = None
 
 
@@ -42,5 +42,6 @@ class DB(object):
 
     def __del__(self):
         """ gracefully terminating db connection """
+        self._db_connection.commit()
         self._db_cur.close()
         self._db_connection.close()
