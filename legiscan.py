@@ -3,21 +3,6 @@
 import requests
 import csv
 
-def request_data(operation, param, value):
-    ''' Takes method and key tuples and returns request
-    object of bills for a given state from legiscan '''
-    keys = {}
-    count = 0
-    assert len(param) == len(value), "Must have same number of params and values!"
-    for name in param:
-        keys[name] = value[count]
-        count += 1
-    params = {'key':'ff6da19238f87945db1c0dd5d6bc1674',
-              'op' : operation}
-    params.update(keys)
-    req = requests.get('http://api.legiscan.com/?', params=params)
-    data = req.json()
-    return data
 
 def request_session_list(state):
     ''' Returns Legiscan request for a state's session list '''
@@ -40,11 +25,26 @@ def aggregate_all_sessions():
         state_sessions[state] = ids
     return state_sessions
 
-def compile_state_session_ids(request):
+def request_data(operation, param, value):
+    ''' Takes method and key tuples and returns request
+    object of bills for a given state from legiscan '''
+    keys = {}
+    count = 0
+    assert len(param) == len(value), "Must have same number of params and values!"
+    for name in param:
+        keys[name] = value[count]
+        count += 1
+    params = {'key':'ff6da19238f87945db1c0dd5d6bc1674',
+              'op' : operation}
+    params.update(keys)
+    req = requests.get('http://api.legiscan.com/?', params=params)
+    data = req.json()
+    return data
+
+def compile_state_session_ids(data):
     '''Takes state sessions request objects and converts to tuple'''
-    original = request.json()
     sessions = []
-    for instance in original["sessions"]:
+    for instance in data["sessions"]:
         session_id = instance["session_id"]
         sessions.append(session_id)
     sessions = tuple(sessions)

@@ -46,10 +46,11 @@ def get_updated_state_bills():
     updated = BILLDB.get_last_db_modification()
     for state in legiscan.get_states():
         state_bills = bills.StateBillsObject(legiscan.request_state_bill_list(state), state)
-        state_bills.updated_state_bills(updated[0][0])
+        state_bills.updated_state_bills(updated[0][0], BILLDB)
         BILLDB.insert_bills(state_bills.desc, state_bills.log)
     BILLDB.update_last_db_modification()    # update db update log
 
 
+get_all_state_bills()
 
 

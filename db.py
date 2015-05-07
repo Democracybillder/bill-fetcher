@@ -28,6 +28,8 @@ class DB(object):
 
     def modify_many(self, query, params):
         """insert or update multiple rows"""
+        print 'query =', query, 'params =', params
+        assert False
         return self._db_cur.executemany(query, params)
 
     def modify_one(self, query, params):

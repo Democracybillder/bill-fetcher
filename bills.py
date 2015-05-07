@@ -1,12 +1,11 @@
 ''' Parsing through bill objects to distill tuples '''
 import timestamp
-import db
 
 class StateBillsObject(object):
     ''' API bill object parsing class '''
 
     def __init__(self, raw_data, state):
-        ''' get API object to parse '''
+        ''' gets raw bill data and state, parses bill info '''
         self.raw_data = raw_data
         self.state = state
         self.session_id = raw_data["masterlist"]["session"]["session_id"]
@@ -25,7 +24,7 @@ class StateBillsObject(object):
             self.log.append(log)
         self.desc, self.log = tuple(self.desc), tuple(self.log)
 
-    def updated_state_bills(self, updated):
+    def updated_state_bills(self, updated, bill_db):
         ''' Takes state for request object and db last update and returns
         info since update in two tuples '''
         questionable_bills_desc = []
@@ -45,7 +44,7 @@ class StateBillsObject(object):
                         bill_desc = self.distill_desc(bill, self.state)
                         questionable_bills_desc.append(bill_desc)
         self.log = tuple(self.log)
-        new_bills = check_questionable_bills(questionable_bills_desc)
+        new_bills = check_questionable_bills(questionable_bills_desc, bill_db)
         self.desc = tuple(self.desc) + tuple(new_bills)
         '''
         print "inputting %s bills on (%s) % (state, datetime.datetime.now())
@@ -63,18 +62,15 @@ class StateBillsObject(object):
             }
         return bill_desc
 
-'''
-PROBLEM
-def check_questionable_bills(data):
+def check_questionable_bills(data, bill_db):
     ''' checks whether each questionable bill already exists in db'''
     new_bills = []
     for bill in data:
-        in_db = billdb.get_bill_id(bill["bill_id"])  # not in db => new bill
+        in_db = bill_db.get_bill_id(bill["bill_id"])  # not in db => new bill
         if not in_db:
             new_bills.append(bill)
     new_bills = tuple(new_bills)
     return new_bills
-'''
 
 def distill_log(bill):
     '''takes bill and returns billLog Tuple'''
@@ -86,7 +82,6 @@ def distill_log(bill):
         "last_action": bill["last_action"]
         }
     return bill_log
-
 
 def clean_bill_dates(bill):
     ''' Makes sure bill is either None or datetime object if needed '''
