@@ -50,7 +50,3 @@ def get_updated_state_bills():
         BILLDB.insert_bills(state_bills.desc, state_bills.log)
     BILLDB.update_last_db_modification()    # update db update log
 
-
-get_all_state_bills()
-
-

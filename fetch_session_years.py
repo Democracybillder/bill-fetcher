@@ -43,6 +43,3 @@ def compile_state_sessions(data):
             }
         sessions.append(session)
     return sessions
-
-get_all_state_sessions()
-

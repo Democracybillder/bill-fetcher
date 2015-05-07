@@ -8,7 +8,7 @@ class DB(object):
     _db_connection = None
     _db_cur = None
 
-    # db connection details
+    # db connection detailsg
     _db_conf = None
 
 
