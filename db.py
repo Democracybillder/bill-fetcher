@@ -28,8 +28,6 @@ class DB(object):
 
     def modify_many(self, query, params):
         """insert or update multiple rows"""
-        print 'query =', query, 'params =', params
-        assert False
         return self._db_cur.executemany(query, params)
 
     def modify_one(self, query, params):
@@ -44,5 +42,6 @@ class DB(object):
 
     def __del__(self):
         """ gracefully terminating db connection """
+        self._db_connection.commit()
         self._db_cur.close()
         self._db_connection.close()
