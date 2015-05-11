@@ -7,6 +7,7 @@ import db
 import billdb
 import legiscan
 import json # for configuration file parsing
+import logging
 
 
 ##################################################
@@ -47,6 +48,7 @@ def get_updated_state_bills():
     for state in legiscan.get_states():
         state_bills = bills.StateBillsObject(legiscan.request_state_bill_list(state), state)
         state_bills.updated_state_bills(updated[0][0], BILLDB)
+        assert False
         BILLDB.insert_bills(state_bills.desc, state_bills.log)
     BILLDB.update_last_db_modification()    # update db update log
-
+    logging.info("Finished get_updated_state_bills and executed update_last_db_modification")

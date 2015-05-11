@@ -1,5 +1,6 @@
 ''' Parsing through bill objects to distill tuples '''
 import timestamp
+import logging
 
 class StateBillsObject(object):
     ''' API bill object parsing class '''
@@ -15,7 +16,8 @@ class StateBillsObject(object):
         self.log = []
 
     def all_state_bills(self):
-        ''' Takes state for request object and returns two tuples objects '''
+        ''' Takes state bill list and returns two tuples objects '''
+        logging_bills(self.bill_list)
         for bill in self.bill_list:
             bill = clean_bill_dates(bill)
             desc = self.distill_desc(bill, self.state)
@@ -27,6 +29,7 @@ class StateBillsObject(object):
     def updated_state_bills(self, updated, bill_db):
         ''' Takes state for request object and db last update and returns
         info since update in two tuples '''
+        logging_bills(self.bill_list)
         questionable_bills_desc = []
         for bill in self.bill_list:
             bill = clean_bill_dates(bill)
@@ -46,9 +49,6 @@ class StateBillsObject(object):
         self.log = tuple(self.log)
         new_bills = check_questionable_bills(questionable_bills_desc, bill_db)
         self.desc = tuple(self.desc) + tuple(new_bills)
-        '''
-        print "inputting %s bills on (%s) % (state, datetime.datetime.now())
-        '''
 
     def distill_desc(self, bill, state):
         '''takes bill and returns billDesc Tuple'''
@@ -88,3 +88,9 @@ def clean_bill_dates(bill):
     bill["status_date"] = timestamp.is_real_date(bill["status_date"])
     bill["last_action_date"] = timestamp.is_real_date(bill["last_action_date"])
     return bill
+
+def logging_bills(bill_list):
+    ''' Checks that bill list has data, raises warning to log if doesn't '''
+    if len(bill_list) == 0 or type(bill_list) != list:
+        logging.warning('bills object not list (type = %s), \
+        or len(bills) = 0 (len(bills) = %s)', type(bill_list), len(bill_list))

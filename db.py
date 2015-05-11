@@ -2,6 +2,7 @@
 '''db access wrapper'''
 
 import psycopg2
+import logging
 
 class DB(object):
     """db wrapper"""

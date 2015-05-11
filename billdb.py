@@ -1,5 +1,6 @@
 #!/usr/bin/python
 '''db layer for bills'''
+import logging
 
 class BillDB(object):
     """ database logic for bills """
