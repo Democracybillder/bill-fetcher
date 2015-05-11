@@ -15,5 +15,3 @@ def update_db_every_seconds(interval, number):
     else:
         fetcher.get_updated_state_bills()
         threading.Timer(interval, update_db_every_seconds, [interval, number-1]).start()
-
-update_db_every_seconds(10, 1)
