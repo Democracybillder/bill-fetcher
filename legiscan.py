@@ -2,6 +2,7 @@
 
 import requests
 import csv
+import logging
 
 
 def request_session_list(state):
@@ -39,6 +40,7 @@ def request_data(operation, param, value):
     params.update(keys)
     req = requests.get('http://api.legiscan.com/?', params=params)
     data = req.json()
+    logging_data(data)
     return data
 
 def compile_state_session_ids(data):
@@ -61,4 +63,11 @@ def get_states():
     states = states[1:53]
     return states
 
+def logging_data(data):
+    ''' Checks if data is corrupt and raises warning to log file if needed '''
+    if type(data) != dict or data["status"] != "OK" or len(data) != 2:
+        logging.warning('Legiscan data type not dict (type = %s) \
+         or data["status"] not "OK" (status = %s) \
+         or len(data) not 2 (len(data) = %s)' \
+        , type(data), data["status"], len(data))
 
