@@ -17,7 +17,7 @@ class StateBillsObject(object):
 
     def all_state_bills(self):
         ''' Takes state bill list and returns two tuples objects '''
-        log_funcs.logging_bills(self.bill_list)
+        log_funcs.has_bills(self.bill_list)
         for bill in self.bill_list:
             bill = clean_bill_dates(bill)
             desc = self.distill_desc(bill, self.state)
@@ -29,7 +29,7 @@ class StateBillsObject(object):
     def updated_state_bills(self, updated, bill_db):
         ''' Takes state for request object and db last update and returns
         info since update in two tuples '''
-        log_funcs.logging_bills(self.bill_list)
+        log_funcs.has_bills(self.bill_list)
         none_counter = 0             # for logging purposes
         questionable_bills_desc = []
         for bill in self.bill_list:

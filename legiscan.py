@@ -40,7 +40,7 @@ def request_data(operation, param, value):
     params.update(keys)
     req = requests.get('http://api.legiscan.com/?', params=params)
     data = req.json()
-    log_funcs.logging_data(data)
+    log_funcs.bill_data(data)
     return data
 
 def compile_state_session_ids(data):

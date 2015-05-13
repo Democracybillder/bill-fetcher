@@ -2,7 +2,8 @@
 '''db access wrapper'''
 
 import psycopg2
-import logging
+import log_funcs
+
 
 class DB(object):
     """db wrapper"""
@@ -27,14 +28,17 @@ class DB(object):
 
         self._db_cur = self._db_connection.cursor()
 
+    @log_funcs.log_count_decorate                #for logging
     def modify_many(self, query, params):
         """insert or update multiple rows"""
         return self._db_cur.executemany(query, params)
 
+    @log_funcs.log_count_decorate
     def modify_one(self, query, params):
         """ insert or update one row """
         return self._db_cur.execute(query, params)
 
+    @log_funcs.log_count_decorate
     def select(self, query, params):
         """ select rows """
         self._db_cur.execute(query, params)
@@ -46,3 +50,4 @@ class DB(object):
         self._db_connection.commit()
         self._db_cur.close()
         self._db_connection.close()
+
