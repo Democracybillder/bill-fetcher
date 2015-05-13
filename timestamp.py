@@ -11,4 +11,4 @@ def is_real_date(date_text, convert=0):
             return date_text
     except ValueError:
         return None
-    
+
